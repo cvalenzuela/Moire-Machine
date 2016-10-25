@@ -23,8 +23,10 @@ int sliderCurrentValue = 0;
 int sliderPreviousValue = 0;
 int sliderDifference = 0;
 int incomingByte = 0;
-boolean activateSlider = false;
-
+int activateSlider = 9;
+int activateAutoSpeed = 9;
+int autoSpeedCurrentValue = 0;
+int wasTheSliderOn = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -38,15 +40,66 @@ void loop() {
   if (Serial.available() > 0){  // see if there's incoming serial data
     incomingByte = Serial.read(); // read it
   }
+  // Activate the Slider
   if (incomingByte == 'H') {
-    activateSlider = true;
+    activateSlider = 1;
     slider(activateSlider);
+    wasTheSliderOn = 1;
   }
+  // Deactivate the Slider
   if (incomingByte == 'L'){
-    activateSlider = false;
+    activateSlider = 0;
     slider(activateSlider);
     incomingByte=' ';
   }
+  // Activate the autospeed with 1
+  if (incomingByte == 'A'){
+    if(wasTheSliderOn == 1){
+      activateSlider = 0;
+      slider(activateSlider);
+    }
+    activateAutoSpeed = 1;
+    autoSpeed(activateAutoSpeed);
+
+  }
+  // Activate the autospeed with 2
+  if (incomingByte == 'S'){
+    if(wasTheSliderOn == 1){
+      activateSlider = 0;
+      slider(activateSlider);
+    }
+    activateAutoSpeed = 2;
+    autoSpeed(activateAutoSpeed);
+  }
+  // Activate the autospeed with 3
+  if (incomingByte == 'D'){
+    if(wasTheSliderOn == 1){
+      activateSlider = 0;
+      slider(activateSlider);
+    }
+    activateAutoSpeed = 3;
+    autoSpeed(activateAutoSpeed);
+  }
+  // Activate the autospeed with 4
+  if (incomingByte == 'F'){
+    if(wasTheSliderOn == 1){
+      activateSlider = 0;
+      slider(activateSlider);
+    }
+    activateAutoSpeed = 4;
+    autoSpeed(activateAutoSpeed);
+  }
+  // Deactivate the autospeed
+  if (incomingByte == 'B'){
+    if(wasTheSliderOn == 1){
+      activateSlider = 0;
+      slider(activateSlider);
+    }
+    activateAutoSpeed = 0;
+    autoSpeed(activateAutoSpeed);
+    incomingByte=' ';
+  }
+
 
   // Reset everything to 0 to avoid stepper going further the limits
 
@@ -83,25 +136,42 @@ void loop() {
     // Reset the Stepper to origin
     // do nothing
 
+/* ----- Auto-Speed ----- */
+void autoSpeed(int iAmInCharge){
 
+
+  if(iAmInCharge == 0){
+    // autoSpeedCurrentValue = 100;
+    // myMotor->step(autoSpeedCurrentValue, BACKWARD, SINGLE); // Return to start
+    // iAmInCharge = 9;
+  }
+  else if (iAmInCharge > 0 && iAmInCharge < 8){
+    autoSpeedCurrentValue = iAmInCharge*100;
+    myMotor->step(autoSpeedCurrentValue, FORWARD, SINGLE);
+    myMotor->step(autoSpeedCurrentValue, BACKWARD, SINGLE);
+    myMotor->step(autoSpeedCurrentValue, BACKWARD, SINGLE);
+    myMotor->step(autoSpeedCurrentValue, FORWARD, SINGLE);
+  }
+
+}
 
 
 
 /* ----- Slider ----- */
-void slider(boolean iAmInCharge) {
+void slider(int iAmInCharge) {
 
   // Read the Slider Value
   sliderValue = analogRead(sliderPin);
   sliderCurrentValue = map(sliderValue,0,1023,-500,500);
 
   // If Slider is ON
-  if(iAmInCharge){
+  if(iAmInCharge == 1){
 
     // Compare current and previous states
     sliderDifference = sliderCurrentValue - sliderPreviousValue;
 
     // Move the Slider depending on the position
-    if(sliderDifference != 0 && iAmInCharge){
+    if(sliderDifference != 0 && iAmInCharge == 1){
        if(sliderDifference >= 1){
           myMotor->step(abs(sliderDifference), FORWARD, SINGLE);
         }
@@ -114,7 +184,7 @@ void slider(boolean iAmInCharge) {
   }
 
   // If Slider is OFF
-  if(!iAmInCharge){
+  else if(iAmInCharge == 0){
 
     sliderDifference = -sliderCurrentValue;
 
@@ -130,6 +200,7 @@ void slider(boolean iAmInCharge) {
       sliderCurrentValue = 0;
       sliderPreviousValue = 0;
       sliderDifference = 0;
+      wasTheSliderOn = 0;
     }
 
   }
