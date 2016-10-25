@@ -27,6 +27,12 @@ int activateSlider = 9;
 int activateAutoSpeed = 9;
 int autoSpeedCurrentValue = 0;
 int wasTheSliderOn = 0;
+int wasTheAutoSpeedOn = 0;
+
+int globalSliderValue = 0;
+int globalSliderCurrentValue = 0;
+int globalSliderPreviousValue = 0;
+int globalSliderDifference = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -37,11 +43,37 @@ void setup() {
 
 void loop() {
 
+
+  // // Read the Slider Value
+  globalSliderValue = analogRead(sliderPin);
+  globalSliderCurrentValue = map(globalSliderValue,0,1023,-500,500);
+  globalSliderDifference = globalSliderCurrentValue - globalSliderPreviousValue;
+  //Serial.println(globalSliderDifference);
+
+  if(abs(globalSliderDifference) > 2){
+    if(wasTheAutoSpeedOn == 1){
+      activateAutoSpeed = 0;
+      autoSpeed(activateAutoSpeed);
+      incomingByte=' ';
+    }
+    activateSlider = 1;
+    slider(activateSlider);
+    wasTheSliderOn = 1;
+    globalSliderPreviousValue = globalSliderCurrentValue;
+  }
+
+
+
   if (Serial.available() > 0){  // see if there's incoming serial data
     incomingByte = Serial.read(); // read it
   }
+
   // Activate the Slider
   if (incomingByte == 'H') {
+    if(wasTheAutoSpeedOn == 1){
+      activateAutoSpeed = 0;
+      autoSpeed(activateAutoSpeed);
+    }
     activateSlider = 1;
     slider(activateSlider);
     wasTheSliderOn = 1;
@@ -52,6 +84,7 @@ void loop() {
     slider(activateSlider);
     incomingByte=' ';
   }
+
   // Activate the autospeed with 1
   if (incomingByte == 'A'){
     if(wasTheSliderOn == 1){
@@ -60,8 +93,9 @@ void loop() {
     }
     activateAutoSpeed = 1;
     autoSpeed(activateAutoSpeed);
-
+    wasTheAutoSpeedOn = 1;
   }
+
   // Activate the autospeed with 2
   if (incomingByte == 'S'){
     if(wasTheSliderOn == 1){
@@ -70,7 +104,9 @@ void loop() {
     }
     activateAutoSpeed = 2;
     autoSpeed(activateAutoSpeed);
+    wasTheAutoSpeedOn = 1;
   }
+
   // Activate the autospeed with 3
   if (incomingByte == 'D'){
     if(wasTheSliderOn == 1){
@@ -79,6 +115,7 @@ void loop() {
     }
     activateAutoSpeed = 3;
     autoSpeed(activateAutoSpeed);
+    wasTheAutoSpeedOn = 1;
   }
   // Activate the autospeed with 4
   if (incomingByte == 'F'){
@@ -88,6 +125,7 @@ void loop() {
     }
     activateAutoSpeed = 4;
     autoSpeed(activateAutoSpeed);
+    wasTheAutoSpeedOn = 1;
   }
   // Deactivate the autospeed
   if (incomingByte == 'B'){
@@ -97,55 +135,20 @@ void loop() {
     }
     activateAutoSpeed = 0;
     autoSpeed(activateAutoSpeed);
+    wasTheAutoSpeedOn = 0;
     incomingByte=' ';
   }
 
-
-  // Reset everything to 0 to avoid stepper going further the limits
-
-  // Check who is going to controll the stepper. Default is Manual.
-    // if the Slider is Moved
-      // Turn ON the Slider, turn OFF the buttons and OFF the Distance
-    // if any button is pressed
-      // Turn ON the Buttons, turn OFF the Slider and OFF the Distance
-    // if Distance Sensor is ON
-      // Turn ON the Distance Sensor, turn OFF the Slider and OFF the Buttons
-
-  // if Slider is ON and everything else is OFF, then Slider
-    // Read slider position
-      // Move stepper to match slider
-
-  // if one of the Auto-Speed button is ON and everything else if OFF, then Auto-Speed
-    // check which Auto-Speed
-      // Move to the selected Auto-Speed
-
-  // if Distance Sensor is ON and everything else if OFF, then Distance Sensor
-    // Check Distance Sensor Value
-      // Move stepper to match Sensor Value`
-
-
-  /* Read the Slider Value */
-
-
 }
-
-// Element function accepts one boolean argument
-  // if TRUE
-    // Read and move stepper
-  // if FALSE
-    // Reset the Stepper to origin
-    // do nothing
 
 /* ----- Auto-Speed ----- */
 void autoSpeed(int iAmInCharge){
 
 
   if(iAmInCharge == 0){
-    // autoSpeedCurrentValue = 100;
-    // myMotor->step(autoSpeedCurrentValue, BACKWARD, SINGLE); // Return to start
-    // iAmInCharge = 9;
+    wasTheAutoSpeedOn = 0;
   }
-  else if (iAmInCharge > 0 && iAmInCharge < 8){
+  else if (iAmInCharge >= 1){
     autoSpeedCurrentValue = iAmInCharge*100;
     myMotor->step(autoSpeedCurrentValue, FORWARD, SINGLE);
     myMotor->step(autoSpeedCurrentValue, BACKWARD, SINGLE);
@@ -154,8 +157,6 @@ void autoSpeed(int iAmInCharge){
   }
 
 }
-
-
 
 /* ----- Slider ----- */
 void slider(int iAmInCharge) {
