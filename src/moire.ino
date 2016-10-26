@@ -41,18 +41,40 @@ int pinLedSpeedThree = 8;
 int pinLedSpeedFour = 7;
 int pinLedSlider = 6;
 
+/* Buttons */
+int pinButtonSpeedOne = 3;
+int pinButtonSpeedTwo = 2;
+int pinButtonSpeedThree = 1;
+int pinButtonSpeedFour = 0;
+
+int currentValueSpeedOne = 0;
+int buttonValueSpeedTwo = 0;
+int buttonValueSpeedThree = 0;
+int buttonValueSpeedFour = 0;
+
+int previousValueSpeedOne = 0;
+
+int stateValueOne;
+
+int speedOneisInCharge = 9;
+
 void setup() {
   Serial.begin(9600);
+
   /* Start the motor */
   AFMS.begin();  // create with the default frequency 1.6KHz
   myMotor->setSpeed(200);  // 10 rpm
 
-  /*LED Setup*/
+  /* LED Setup */
   pinMode(pinLedSpeedOne, OUTPUT);
   pinMode(pinLedSpeedTwo, OUTPUT);
   pinMode(pinLedSpeedThree, OUTPUT);
   pinMode(pinLedSpeedFour, OUTPUT);
   pinMode(pinLedSlider,OUTPUT);
+
+  /* Button Setuo */
+  pinMode(pinButtonSpeedOne,INPUT);
+  // more buttons here
 }
 
 void loop() {
@@ -72,10 +94,7 @@ void loop() {
       incomingByte=' ';
     }
 
-    digitalWrite(pinLedSpeedOne, LOW);
-    digitalWrite(pinLedSpeedTwo, LOW);
-    digitalWrite(pinLedSpeedThree, LOW);
-    digitalWrite(pinLedSpeedFour, LOW);
+    stateValueOne = LOW;
 
     activateSlider = 1;
     slider(activateSlider);
@@ -91,12 +110,41 @@ void loop() {
   }
   /* ----- Read Serial Data -----*/
 
+  /* ----- Read the Buttons -----*/
+  currentValueSpeedOne = digitalRead(pinButtonSpeedOne);
+
+  if(currentValueSpeedOne == HIGH && previousValueSpeedOne == LOW){
+    if(stateValueOne == HIGH){
+      stateValueOne = LOW;
+
+    }
+    else{
+      if(wasTheSliderOn == 1){
+        activateSlider = 0;
+        slider(activateSlider);
+        digitalWrite(pinLedSlider, LOW);
+      }
+      stateValueOne = HIGH;
+
+    }
+    delay(50);
+  }
+
+  digitalWrite(pinLedSpeedOne, stateValueOne);
+  previousValueSpeedOne = currentValueSpeedOne;
+  /* ----- Read the Buttons -----*/
+
   /* ----- Activate the Slider -----*/
   if (incomingByte == 'H') {
     if(wasTheAutoSpeedOn == 1){
       activateAutoSpeed = 0;
       autoSpeed(activateAutoSpeed);
     }
+    digitalWrite(pinLedSpeedOne, LOW);
+    digitalWrite(pinLedSpeedTwo, LOW);
+    digitalWrite(pinLedSpeedThree, LOW);
+    digitalWrite(pinLedSpeedFour, LOW);
+
     activateSlider = 1;
     slider(activateSlider);
     wasTheSliderOn = 1;
@@ -112,7 +160,7 @@ void loop() {
   /* -----  Deactivate the Slider -----*/
 
   /* ----- Autospeed with 1 -----*/
-  if (incomingByte == 'A'){
+  if (incomingByte == 'A' || stateValueOne == HIGH ){
     if(wasTheSliderOn == 1){
       activateSlider = 0;
       slider(activateSlider);
@@ -200,10 +248,12 @@ void loop() {
     activateAutoSpeed = 0;
     autoSpeed(activateAutoSpeed);
     wasTheAutoSpeedOn = 0;
+    stateValueOne = LOW;
     incomingByte=' ';
   }
   /* ----- Deactivate the autospeed -----*/
 
+  delay(10);
 }
 
 /* ====== Auto-Speed ====== */
