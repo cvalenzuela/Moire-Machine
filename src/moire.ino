@@ -34,41 +34,64 @@ int globalSliderCurrentValue = 0;
 int globalSliderPreviousValue = 0;
 int globalSliderDifference = 0;
 
+/* LEDS */
+int pinLedSpeedOne = 10;
+int pinLedSpeedTwo = 9;
+int pinLedSpeedThree = 8;
+int pinLedSpeedFour = 7;
+int pinLedSlider = 6;
+
 void setup() {
   Serial.begin(9600);
   /* Start the motor */
   AFMS.begin();  // create with the default frequency 1.6KHz
   myMotor->setSpeed(200);  // 10 rpm
+
+  /*LED Setup*/
+  pinMode(pinLedSpeedOne, OUTPUT);
+  pinMode(pinLedSpeedTwo, OUTPUT);
+  pinMode(pinLedSpeedThree, OUTPUT);
+  pinMode(pinLedSpeedFour, OUTPUT);
+  pinMode(pinLedSlider,OUTPUT);
 }
 
 void loop() {
 
 
-  // // Read the Slider Value
+  /* ----- Read the Slider Value -----*/
   globalSliderValue = analogRead(sliderPin);
   globalSliderCurrentValue = map(globalSliderValue,0,1023,-500,500);
   globalSliderDifference = globalSliderCurrentValue - globalSliderPreviousValue;
-  //Serial.println(globalSliderDifference);
+  /* ----- Read the Slider Value -----*/
 
+  /* ----- Check if the Slider is moved -----*/
   if(abs(globalSliderDifference) > 2){
     if(wasTheAutoSpeedOn == 1){
       activateAutoSpeed = 0;
       autoSpeed(activateAutoSpeed);
       incomingByte=' ';
     }
+
+    digitalWrite(pinLedSpeedOne, LOW);
+    digitalWrite(pinLedSpeedTwo, LOW);
+    digitalWrite(pinLedSpeedThree, LOW);
+    digitalWrite(pinLedSpeedFour, LOW);
+
     activateSlider = 1;
     slider(activateSlider);
     wasTheSliderOn = 1;
     globalSliderPreviousValue = globalSliderCurrentValue;
   }
+  /* ----- Check if the Slider is moved -----*/
 
 
-
+  /* ----- Read Serial Data -----*/
   if (Serial.available() > 0){  // see if there's incoming serial data
     incomingByte = Serial.read(); // read it
   }
+  /* ----- Read Serial Data -----*/
 
-  // Activate the Slider
+  /* ----- Activate the Slider -----*/
   if (incomingByte == 'H') {
     if(wasTheAutoSpeedOn == 1){
       activateAutoSpeed = 0;
@@ -78,73 +101,113 @@ void loop() {
     slider(activateSlider);
     wasTheSliderOn = 1;
   }
-  // Deactivate the Slider
+  /* ----- Activate the Slider -----*/
+
+  /* -----  Deactivate the Slider -----*/
   if (incomingByte == 'L'){
     activateSlider = 0;
     slider(activateSlider);
     incomingByte=' ';
   }
+  /* -----  Deactivate the Slider -----*/
 
-  // Activate the autospeed with 1
+  /* ----- Autospeed with 1 -----*/
   if (incomingByte == 'A'){
     if(wasTheSliderOn == 1){
       activateSlider = 0;
       slider(activateSlider);
+      digitalWrite(pinLedSlider, LOW);
     }
+
+    digitalWrite(pinLedSpeedOne, HIGH);
+    digitalWrite(pinLedSpeedTwo, LOW);
+    digitalWrite(pinLedSpeedThree, LOW);
+    digitalWrite(pinLedSpeedFour, LOW);
+
     activateAutoSpeed = 1;
     autoSpeed(activateAutoSpeed);
     wasTheAutoSpeedOn = 1;
   }
+  /* ----- Autospeed with 1 -----*/
 
-  // Activate the autospeed with 2
+  /* ----- Autospeed with 2 -----*/
   if (incomingByte == 'S'){
     if(wasTheSliderOn == 1){
       activateSlider = 0;
       slider(activateSlider);
+      digitalWrite(pinLedSlider, LOW);
     }
+
+    digitalWrite(pinLedSpeedOne, LOW);
+    digitalWrite(pinLedSpeedTwo, HIGH);
+    digitalWrite(pinLedSpeedThree, LOW);
+    digitalWrite(pinLedSpeedFour, LOW);
+
     activateAutoSpeed = 2;
     autoSpeed(activateAutoSpeed);
     wasTheAutoSpeedOn = 1;
   }
+  /* ----- Autospeed with 2 -----*/
 
-  // Activate the autospeed with 3
+  /* ----- Autospeed with 3 -----*/
   if (incomingByte == 'D'){
     if(wasTheSliderOn == 1){
       activateSlider = 0;
       slider(activateSlider);
+      digitalWrite(pinLedSlider, LOW);
     }
+
+    digitalWrite(pinLedSpeedOne, LOW);
+    digitalWrite(pinLedSpeedTwo, LOW);
+    digitalWrite(pinLedSpeedThree, HIGH);
+    digitalWrite(pinLedSpeedFour, LOW);
+
     activateAutoSpeed = 3;
     autoSpeed(activateAutoSpeed);
     wasTheAutoSpeedOn = 1;
   }
-  // Activate the autospeed with 4
+  /* ----- Autospeed with 3 -----*/
+
+  /* ----- Autospeed with 4 -----*/
   if (incomingByte == 'F'){
     if(wasTheSliderOn == 1){
       activateSlider = 0;
       slider(activateSlider);
+      digitalWrite(pinLedSlider, LOW);
     }
+
+    digitalWrite(pinLedSpeedOne, LOW);
+    digitalWrite(pinLedSpeedTwo, LOW);
+    digitalWrite(pinLedSpeedThree, LOW);
+    digitalWrite(pinLedSpeedFour, HIGH);
+
     activateAutoSpeed = 4;
     autoSpeed(activateAutoSpeed);
     wasTheAutoSpeedOn = 1;
   }
-  // Deactivate the autospeed
+  /* ----- Autospeed with 4 -----*/
+
+  /* ----- Deactivate the autospeed -----*/
   if (incomingByte == 'B'){
     if(wasTheSliderOn == 1){
       activateSlider = 0;
       slider(activateSlider);
     }
+    digitalWrite(pinLedSpeedOne, LOW);
+    digitalWrite(pinLedSpeedTwo, LOW);
+    digitalWrite(pinLedSpeedThree, LOW);
+    digitalWrite(pinLedSpeedFour, LOW);
     activateAutoSpeed = 0;
     autoSpeed(activateAutoSpeed);
     wasTheAutoSpeedOn = 0;
     incomingByte=' ';
   }
+  /* ----- Deactivate the autospeed -----*/
 
 }
 
-/* ----- Auto-Speed ----- */
+/* ====== Auto-Speed ====== */
 void autoSpeed(int iAmInCharge){
-
-
   if(iAmInCharge == 0){
     wasTheAutoSpeedOn = 0;
   }
@@ -155,10 +218,11 @@ void autoSpeed(int iAmInCharge){
     myMotor->step(autoSpeedCurrentValue, BACKWARD, SINGLE);
     myMotor->step(autoSpeedCurrentValue, FORWARD, SINGLE);
   }
-
 }
+/* ====== Auto-Speed ====== */
 
-/* ----- Slider ----- */
+
+/* ====== Slider ====== */
 void slider(int iAmInCharge) {
 
   // Read the Slider Value
@@ -167,6 +231,8 @@ void slider(int iAmInCharge) {
 
   // If Slider is ON
   if(iAmInCharge == 1){
+    //Turn ON the LED
+    digitalWrite(pinLedSlider, HIGH);
 
     // Compare current and previous states
     sliderDifference = sliderCurrentValue - sliderPreviousValue;
@@ -186,6 +252,8 @@ void slider(int iAmInCharge) {
 
   // If Slider is OFF
   else if(iAmInCharge == 0){
+    //Turn OFF the LED
+    digitalWrite(pinLedSlider, LOW);
 
     sliderDifference = -sliderCurrentValue;
 
@@ -203,7 +271,6 @@ void slider(int iAmInCharge) {
       sliderDifference = 0;
       wasTheSliderOn = 0;
     }
-
   }
-
 }
+/* ====== Slider ====== */
