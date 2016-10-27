@@ -48,15 +48,19 @@ int pinButtonSpeedThree = 1;
 int pinButtonSpeedFour = 0;
 
 int currentValueSpeedOne = 0;
-int buttonValueSpeedTwo = 0;
-int buttonValueSpeedThree = 0;
-int buttonValueSpeedFour = 0;
+int currentValueSpeedTwo = 0;
+int currentValueSpeedThree = 0;
+int currentValueSpeedFour = 0;
 
 int previousValueSpeedOne = 0;
+int previousValueSpeedTwo = 0;
+int previousValueSpeedThree = 0;
+int previousValueSpeedFour = 0;
 
-int stateValueOne;
-
-int speedOneisInCharge = 9;
+int stateValueOne = LOW;
+int stateValueTwo = LOW;
+int stateValueThree = LOW;
+int stateValueFour = LOW;
 
 void setup() {
   Serial.begin(9600);
@@ -74,6 +78,9 @@ void setup() {
 
   /* Button Setuo */
   pinMode(pinButtonSpeedOne,INPUT);
+  pinMode(pinButtonSpeedTwo,INPUT);
+  pinMode(pinButtonSpeedThree,INPUT);
+  pinMode(pinButtonSpeedFour,INPUT);
   // more buttons here
 }
 
@@ -94,7 +101,11 @@ void loop() {
       incomingByte=' ';
     }
 
+    // Set to LOW all Auto Speed LED
     stateValueOne = LOW;
+    stateValueTwo = LOW;
+    stateValueThree = LOW;
+    stateValueFour = LOW;
 
     activateSlider = 1;
     slider(activateSlider);
@@ -112,11 +123,14 @@ void loop() {
 
   /* ----- Read the Buttons -----*/
   currentValueSpeedOne = digitalRead(pinButtonSpeedOne);
+  currentValueSpeedTwo = digitalRead(pinButtonSpeedTwo);
+  currentValueSpeedThree = digitalRead(pinButtonSpeedThree);
+  currentValueSpeedFour = digitalRead(pinButtonSpeedFour);
 
+  // Check the first button
   if(currentValueSpeedOne == HIGH && previousValueSpeedOne == LOW){
     if(stateValueOne == HIGH){
       stateValueOne = LOW;
-
     }
     else{
       if(wasTheSliderOn == 1){
@@ -125,13 +139,82 @@ void loop() {
         digitalWrite(pinLedSlider, LOW);
       }
       stateValueOne = HIGH;
-
+      stateValueTwo = LOW;
+      stateValueThree = LOW;
+      stateValueFour = LOW;
     }
     delay(50);
   }
 
+  // Check the second button
+  if(currentValueSpeedTwo == HIGH && previousValueSpeedTwo == LOW){
+    if(stateValueTwo == HIGH){
+      stateValueTwo = LOW;
+    }
+    else{
+      if(wasTheSliderOn == 1){
+        activateSlider = 0;
+        slider(activateSlider);
+        digitalWrite(pinLedSlider, LOW);
+      }
+      stateValueOne = LOW;
+      stateValueTwo = HIGH;
+      stateValueThree = LOW;
+      stateValueFour = LOW;
+    }
+    delay(50);
+  }
+
+  // Check the third button
+  if(currentValueSpeedThree == HIGH && previousValueSpeedThree == LOW){
+    if(stateValueThree == HIGH){
+      stateValueThree = LOW;
+    }
+    else{
+      if(wasTheSliderOn == 1){
+        activateSlider = 0;
+        slider(activateSlider);
+        digitalWrite(pinLedSlider, LOW);
+      }
+      stateValueOne = LOW;
+      stateValueTwo = LOW;
+      stateValueThree = HIGH;
+      stateValueFour = LOW;
+    }
+    delay(50);
+  }
+
+  // Check the fourth button
+  if(currentValueSpeedFour == HIGH && previousValueSpeedFour == LOW){
+    if(stateValueFour == HIGH){
+      stateValueFour = LOW;
+    }
+    else{
+      if(wasTheSliderOn == 1){
+        activateSlider = 0;
+        slider(activateSlider);
+        digitalWrite(pinLedSlider, LOW);
+      }
+      stateValueOne = LOW;
+      stateValueTwo = LOW;
+      stateValueThree = LOW;
+      stateValueFour = HIGH;
+    }
+    delay(50);
+  }
+
+  // Write the LED state
   digitalWrite(pinLedSpeedOne, stateValueOne);
+  digitalWrite(pinLedSpeedTwo, stateValueTwo);
+  digitalWrite(pinButtonSpeedThree, stateValueThree);
+  digitalWrite(pinButtonSpeedFour, stateValueFour);
+
+  // Change the previous Button state
   previousValueSpeedOne = currentValueSpeedOne;
+  previousValueSpeedTwo = currentValueSpeedTwo;
+  previousValueSpeedThree = currentValueSpeedThree;
+  previousValueSpeedFour = currentValueSpeedFour;
+
   /* ----- Read the Buttons -----*/
 
   /* ----- Activate the Slider -----*/
@@ -179,7 +262,7 @@ void loop() {
   /* ----- Autospeed with 1 -----*/
 
   /* ----- Autospeed with 2 -----*/
-  if (incomingByte == 'S'){
+  if (incomingByte == 'S' || stateValueTwo == HIGH){
     if(wasTheSliderOn == 1){
       activateSlider = 0;
       slider(activateSlider);
@@ -198,7 +281,7 @@ void loop() {
   /* ----- Autospeed with 2 -----*/
 
   /* ----- Autospeed with 3 -----*/
-  if (incomingByte == 'D'){
+  if (incomingByte == 'D' || stateValueThree == HIGH){
     if(wasTheSliderOn == 1){
       activateSlider = 0;
       slider(activateSlider);
@@ -217,7 +300,7 @@ void loop() {
   /* ----- Autospeed with 3 -----*/
 
   /* ----- Autospeed with 4 -----*/
-  if (incomingByte == 'F'){
+  if (incomingByte == 'F' || stateValueFour == HIGH){
     if(wasTheSliderOn == 1){
       activateSlider = 0;
       slider(activateSlider);
@@ -249,6 +332,9 @@ void loop() {
     autoSpeed(activateAutoSpeed);
     wasTheAutoSpeedOn = 0;
     stateValueOne = LOW;
+    stateValueTwo = LOW;
+    stateValueThree = LOW;
+    stateValueFour = LOW;
     incomingByte=' ';
   }
   /* ----- Deactivate the autospeed -----*/
