@@ -14,7 +14,7 @@ October 2016
 
 /* Objects */
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
-Adafruit_StepperMotor *myMotor = AFMS.getStepper(200, 2); //Connect a stepper motor with 200 steps per revolution (1.8 degree) to motor port #2 (M3 and M4)
+Adafruit_StepperMotor *myMotor = AFMS.getStepper(200, 1); //Connect a stepper motor with 200 steps per revolution (1.8 degree) to motor port #1 (M1 and M2)
 
 /* Variables */
 int sliderPin = A2;
@@ -22,7 +22,7 @@ int sliderValue = 0;
 int sliderCurrentValue = 0;
 int sliderPreviousValue = 0;
 int sliderDifference = 0;
-int incomingByte = 0;
+int incomingByte = ' ';
 int activateSlider = 9;
 int activateAutoSpeed = 9;
 int autoSpeedCurrentValue = 0;
@@ -35,27 +35,27 @@ int globalSliderPreviousValue = 0;
 int globalSliderDifference = 0;
 
 /* LEDS */
-int pinLedSpeedOne = 10;
-int pinLedSpeedTwo = 9;
-int pinLedSpeedThree = 8;
-int pinLedSpeedFour = 7;
-int pinLedSlider = 6;
+int pinLedSpeedOne = 5;
+int pinLedSpeedTwo = 6;
+int pinLedSpeedThree = 7;
+int pinLedSpeedFour = 8;
+int pinLedSlider = 9;
 
 /* Buttons */
-int pinButtonSpeedOne = 3;
-int pinButtonSpeedTwo = 2;
-int pinButtonSpeedThree = 1;
-int pinButtonSpeedFour = 0;
+int pinButtonSpeedOne = 10;
+int pinButtonSpeedTwo = 11;
+int pinButtonSpeedThree = 12;
+int pinButtonSpeedFour = 13;
 
 int currentValueSpeedOne = 0;
 int currentValueSpeedTwo = 0;
 int currentValueSpeedThree = 0;
 int currentValueSpeedFour = 0;
 
-int previousValueSpeedOne = 0;
-int previousValueSpeedTwo = 0;
-int previousValueSpeedThree = 0;
-int previousValueSpeedFour = 0;
+int previousValueSpeedOne = LOW;
+int previousValueSpeedTwo = LOW;
+int previousValueSpeedThree = LOW;
+int previousValueSpeedFour = LOW;
 
 int stateValueOne = LOW;
 int stateValueTwo = LOW;
@@ -67,7 +67,7 @@ void setup() {
 
   /* Start the motor */
   AFMS.begin();  // create with the default frequency 1.6KHz
-  myMotor->setSpeed(200);  // 10 rpm
+  myMotor->setSpeed(5);  // 10 rpm
 
   /* LED Setup */
   pinMode(pinLedSpeedOne, OUTPUT);
@@ -81,7 +81,7 @@ void setup() {
   pinMode(pinButtonSpeedTwo,INPUT);
   pinMode(pinButtonSpeedThree,INPUT);
   pinMode(pinButtonSpeedFour,INPUT);
-  // more buttons here
+
 }
 
 void loop() {
@@ -99,18 +99,20 @@ void loop() {
       activateAutoSpeed = 0;
       autoSpeed(activateAutoSpeed);
       incomingByte=' ';
-    }
 
-    // Set to LOW all Auto Speed LED
-    stateValueOne = LOW;
-    stateValueTwo = LOW;
-    stateValueThree = LOW;
-    stateValueFour = LOW;
+      // Set to LOW all Auto Speed LED
+      stateValueOne = LOW;
+      stateValueTwo = LOW;
+      stateValueThree = LOW;
+      stateValueFour = LOW;
+      delay(50);
+    }
 
     activateSlider = 1;
     slider(activateSlider);
     wasTheSliderOn = 1;
     globalSliderPreviousValue = globalSliderCurrentValue;
+    delay(10);
   }
   /* ----- Check if the Slider is moved -----*/
 
@@ -131,6 +133,9 @@ void loop() {
   if(currentValueSpeedOne == HIGH && previousValueSpeedOne == LOW){
     if(stateValueOne == HIGH){
       stateValueOne = LOW;
+      stateValueTwo = LOW;
+      stateValueThree = LOW;
+      stateValueFour = LOW;
     }
     else{
       if(wasTheSliderOn == 1){
@@ -142,6 +147,7 @@ void loop() {
       stateValueTwo = LOW;
       stateValueThree = LOW;
       stateValueFour = LOW;
+      delay(30);
     }
     delay(50);
   }
@@ -149,7 +155,10 @@ void loop() {
   // Check the second button
   if(currentValueSpeedTwo == HIGH && previousValueSpeedTwo == LOW){
     if(stateValueTwo == HIGH){
+      stateValueOne = LOW;
       stateValueTwo = LOW;
+      stateValueThree = LOW;
+      stateValueFour = LOW;
     }
     else{
       if(wasTheSliderOn == 1){
@@ -161,6 +170,7 @@ void loop() {
       stateValueTwo = HIGH;
       stateValueThree = LOW;
       stateValueFour = LOW;
+      delay(30);
     }
     delay(50);
   }
@@ -168,7 +178,10 @@ void loop() {
   // Check the third button
   if(currentValueSpeedThree == HIGH && previousValueSpeedThree == LOW){
     if(stateValueThree == HIGH){
+      stateValueOne = LOW;
+      stateValueTwo = LOW;
       stateValueThree = LOW;
+      stateValueFour = LOW;
     }
     else{
       if(wasTheSliderOn == 1){
@@ -180,6 +193,7 @@ void loop() {
       stateValueTwo = LOW;
       stateValueThree = HIGH;
       stateValueFour = LOW;
+      delay(30);
     }
     delay(50);
   }
@@ -187,6 +201,9 @@ void loop() {
   // Check the fourth button
   if(currentValueSpeedFour == HIGH && previousValueSpeedFour == LOW){
     if(stateValueFour == HIGH){
+      stateValueOne = LOW;
+      stateValueTwo = LOW;
+      stateValueThree = LOW;
       stateValueFour = LOW;
     }
     else{
@@ -199,21 +216,10 @@ void loop() {
       stateValueTwo = LOW;
       stateValueThree = LOW;
       stateValueFour = HIGH;
+      delay(30);
     }
     delay(50);
   }
-
-  // Write the LED state
-  digitalWrite(pinLedSpeedOne, stateValueOne);
-  digitalWrite(pinLedSpeedTwo, stateValueTwo);
-  digitalWrite(pinButtonSpeedThree, stateValueThree);
-  digitalWrite(pinButtonSpeedFour, stateValueFour);
-
-  // Change the previous Button state
-  previousValueSpeedOne = currentValueSpeedOne;
-  previousValueSpeedTwo = currentValueSpeedTwo;
-  previousValueSpeedThree = currentValueSpeedThree;
-  previousValueSpeedFour = currentValueSpeedFour;
 
   /* ----- Read the Buttons -----*/
 
@@ -223,10 +229,6 @@ void loop() {
       activateAutoSpeed = 0;
       autoSpeed(activateAutoSpeed);
     }
-    digitalWrite(pinLedSpeedOne, LOW);
-    digitalWrite(pinLedSpeedTwo, LOW);
-    digitalWrite(pinLedSpeedThree, LOW);
-    digitalWrite(pinLedSpeedFour, LOW);
 
     activateSlider = 1;
     slider(activateSlider);
@@ -249,13 +251,10 @@ void loop() {
       slider(activateSlider);
       digitalWrite(pinLedSlider, LOW);
     }
-
-    digitalWrite(pinLedSpeedOne, HIGH);
-    digitalWrite(pinLedSpeedTwo, LOW);
-    digitalWrite(pinLedSpeedThree, LOW);
-    digitalWrite(pinLedSpeedFour, LOW);
+    delay(5);
 
     activateAutoSpeed = 1;
+    myMotor->setSpeed(5);
     autoSpeed(activateAutoSpeed);
     wasTheAutoSpeedOn = 1;
   }
@@ -268,13 +267,10 @@ void loop() {
       slider(activateSlider);
       digitalWrite(pinLedSlider, LOW);
     }
+    delay(5);
 
-    digitalWrite(pinLedSpeedOne, LOW);
-    digitalWrite(pinLedSpeedTwo, HIGH);
-    digitalWrite(pinLedSpeedThree, LOW);
-    digitalWrite(pinLedSpeedFour, LOW);
-
-    activateAutoSpeed = 2;
+    activateAutoSpeed = 1;
+    myMotor->setSpeed(8);
     autoSpeed(activateAutoSpeed);
     wasTheAutoSpeedOn = 1;
   }
@@ -287,13 +283,10 @@ void loop() {
       slider(activateSlider);
       digitalWrite(pinLedSlider, LOW);
     }
+    delay(5);
 
-    digitalWrite(pinLedSpeedOne, LOW);
-    digitalWrite(pinLedSpeedTwo, LOW);
-    digitalWrite(pinLedSpeedThree, HIGH);
-    digitalWrite(pinLedSpeedFour, LOW);
-
-    activateAutoSpeed = 3;
+    activateAutoSpeed = 1;
+    myMotor->setSpeed(10);
     autoSpeed(activateAutoSpeed);
     wasTheAutoSpeedOn = 1;
   }
@@ -306,13 +299,10 @@ void loop() {
       slider(activateSlider);
       digitalWrite(pinLedSlider, LOW);
     }
+    delay(5);
 
-    digitalWrite(pinLedSpeedOne, LOW);
-    digitalWrite(pinLedSpeedTwo, LOW);
-    digitalWrite(pinLedSpeedThree, LOW);
-    digitalWrite(pinLedSpeedFour, HIGH);
-
-    activateAutoSpeed = 4;
+    activateAutoSpeed = 1;
+    myMotor->setSpeed(15);
     autoSpeed(activateAutoSpeed);
     wasTheAutoSpeedOn = 1;
   }
@@ -324,10 +314,7 @@ void loop() {
       activateSlider = 0;
       slider(activateSlider);
     }
-    digitalWrite(pinLedSpeedOne, LOW);
-    digitalWrite(pinLedSpeedTwo, LOW);
-    digitalWrite(pinLedSpeedThree, LOW);
-    digitalWrite(pinLedSpeedFour, LOW);
+
     activateAutoSpeed = 0;
     autoSpeed(activateAutoSpeed);
     wasTheAutoSpeedOn = 0;
@@ -336,10 +323,35 @@ void loop() {
     stateValueThree = LOW;
     stateValueFour = LOW;
     incomingByte=' ';
+    delay(50);
   }
   /* ----- Deactivate the autospeed -----*/
 
-  delay(10);
+  Serial.print("ONE: ");
+  Serial.print(stateValueOne);
+  Serial.print("//");
+  Serial.print("TWO: ");
+  Serial.print(stateValueTwo);
+  Serial.print("//");
+  Serial.print("THREE: ");
+  Serial.print(stateValueThree);
+  Serial.print("//");
+  Serial.print("FOUR: ");
+  Serial.println(stateValueFour);
+
+  // Write the LED state
+  digitalWrite(pinLedSpeedOne, stateValueOne);
+  digitalWrite(pinLedSpeedTwo, stateValueTwo);
+  digitalWrite(pinLedSpeedThree, stateValueThree);
+  digitalWrite(pinLedSpeedFour, stateValueFour);
+
+  // Change the previous Button state
+  previousValueSpeedOne = currentValueSpeedOne;
+  previousValueSpeedTwo = currentValueSpeedTwo;
+  previousValueSpeedThree = currentValueSpeedThree;
+  previousValueSpeedFour = currentValueSpeedFour;
+
+  delay(1);
 }
 
 /* ====== Auto-Speed ====== */
@@ -348,7 +360,7 @@ void autoSpeed(int iAmInCharge){
     wasTheAutoSpeedOn = 0;
   }
   else if (iAmInCharge >= 1){
-    autoSpeedCurrentValue = iAmInCharge*100;
+    autoSpeedCurrentValue = iAmInCharge*40;
     myMotor->step(autoSpeedCurrentValue, FORWARD, SINGLE);
     myMotor->step(autoSpeedCurrentValue, BACKWARD, SINGLE);
     myMotor->step(autoSpeedCurrentValue, BACKWARD, SINGLE);
@@ -363,7 +375,7 @@ void slider(int iAmInCharge) {
 
   // Read the Slider Value
   sliderValue = analogRead(sliderPin);
-  sliderCurrentValue = map(sliderValue,0,1023,-500,500);
+  sliderCurrentValue = map(sliderValue,0,1023,500,-500);
 
   // If Slider is ON
   if(iAmInCharge == 1){
