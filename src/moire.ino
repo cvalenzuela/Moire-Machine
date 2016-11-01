@@ -67,7 +67,7 @@ void setup() {
 
   /* Start the motor */
   AFMS.begin();  // create with the default frequency 1.6KHz
-  myMotor->setSpeed(5);  // 10 rpm
+  myMotor->setSpeed(1);  // 10 rpm
 
   /* LED Setup */
   pinMode(pinLedSpeedOne, OUTPUT);
@@ -89,7 +89,7 @@ void loop() {
 
   /* ----- Read the Slider Value -----*/
   globalSliderValue = analogRead(sliderPin);
-  globalSliderCurrentValue = map(globalSliderValue,0,1023,-500,500);
+  globalSliderCurrentValue = map(globalSliderValue,0,1023,-50,50);
   globalSliderDifference = globalSliderCurrentValue - globalSliderPreviousValue;
   /* ----- Read the Slider Value -----*/
 
@@ -254,7 +254,7 @@ void loop() {
     delay(5);
 
     activateAutoSpeed = 1;
-    myMotor->setSpeed(5);
+    myMotor->setSpeed(0);
     autoSpeed(activateAutoSpeed);
     wasTheAutoSpeedOn = 1;
   }
@@ -270,7 +270,7 @@ void loop() {
     delay(5);
 
     activateAutoSpeed = 1;
-    myMotor->setSpeed(8);
+    myMotor->setSpeed(10);
     autoSpeed(activateAutoSpeed);
     wasTheAutoSpeedOn = 1;
   }
@@ -286,7 +286,7 @@ void loop() {
     delay(5);
 
     activateAutoSpeed = 1;
-    myMotor->setSpeed(10);
+    myMotor->setSpeed(5);
     autoSpeed(activateAutoSpeed);
     wasTheAutoSpeedOn = 1;
   }
@@ -302,7 +302,7 @@ void loop() {
     delay(5);
 
     activateAutoSpeed = 1;
-    myMotor->setSpeed(15);
+    myMotor->setSpeed(7);
     autoSpeed(activateAutoSpeed);
     wasTheAutoSpeedOn = 1;
   }
@@ -360,11 +360,15 @@ void autoSpeed(int iAmInCharge){
     wasTheAutoSpeedOn = 0;
   }
   else if (iAmInCharge >= 1){
-    autoSpeedCurrentValue = iAmInCharge*40;
+    autoSpeedCurrentValue = iAmInCharge*70;
     myMotor->step(autoSpeedCurrentValue, FORWARD, SINGLE);
+    delay(10);
     myMotor->step(autoSpeedCurrentValue, BACKWARD, SINGLE);
+    delay(10);
     myMotor->step(autoSpeedCurrentValue, BACKWARD, SINGLE);
+    delay(10);
     myMotor->step(autoSpeedCurrentValue, FORWARD, SINGLE);
+    delay(10);
   }
 }
 /* ====== Auto-Speed ====== */
@@ -375,7 +379,7 @@ void slider(int iAmInCharge) {
 
   // Read the Slider Value
   sliderValue = analogRead(sliderPin);
-  sliderCurrentValue = map(sliderValue,0,1023,500,-500);
+  sliderCurrentValue = map(sliderValue,0,1023,50,-50);
 
   // If Slider is ON
   if(iAmInCharge == 1){
